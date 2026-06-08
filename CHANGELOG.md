@@ -7,6 +7,20 @@ and this project uses date-based, incremental versioning. Dates are in YYYY-MM-D
 
 ---
 
+## [1.3.0] — 2026
+
+More ways to get images onto the board, and a way to read color back out of them.
+
+### Added
+- **Paste image URLs.** Copy an image link from the web and paste it (`Cmd/Ctrl+V`) to drop it on the canvas. Actual image files on the clipboard still win when both are present.
+- **Drag images straight from a browser.** Dragging an image off a web page now works — the dropped URL is read from `text/uri-list` / `text/html` and loaded, no need to save the file first.
+- **Color palette extraction.** Selecting an image shows a five-color palette in the inspector, pulled with a median-cut pass over a downscaled copy. Click a swatch to copy its hex.
+
+### Notes
+- Images loaded from a URL are cross-origin. They display fine, but the browser won't let us read their pixels — so palette extraction shows a short note instead of swatches for those, and PNG export of a board containing them can be blocked. Pasted/imported image files (local) work fully.
+
+---
+
 ## [1.2.0] — 2026
 
 Connectors and a layers workflow.

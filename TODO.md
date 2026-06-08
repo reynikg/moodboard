@@ -35,14 +35,7 @@ Checkboxes are for tracking. Notes under each item are implementation hints for 
 
 ## Images
 
-- [ ] **Paste image URLs.** Paste a URL (e.g. an image link copied from the web) and have it load onto the canvas.
-  - On paste, detect when clipboard text is a URL; load it into an `Image`. Note: cross-origin images can taint the canvas and break PNG export — may need to handle CORS gracefully or warn the user.
-
-- [ ] **Drag images directly from a browser into the canvas.** Dragging an image out of a web page and dropping it should add it.
-  - The drop event exposes `text/uri-list` / `text/html` rather than a file. Parse the dropped URL and load it like the URL-paste feature. Same CORS caveat applies.
-
-- [ ] **Color palette extraction from images.** Pull a small dominant-color palette out of a selected image.
-  - Sample pixels from an offscreen canvas and cluster (e.g. median cut or simple k-means). Show swatches in the inspector; let the user copy a hex or apply it to a shape's fill. CORS-tainted images can't be read pixel-by-pixel — only works on local/same-origin images.
+All current image items shipped — see Done below.
 
 ## Text
 
@@ -75,4 +68,6 @@ Anything that comes up but isn't committed to yet:
 
 > Move items here as they ship (and add them to `CHANGELOG.md`).
 
-- (nothing yet from this list)
+- [x] **Paste image URLs.** Copied an image link, paste it (`Cmd/Ctrl+V`), and it loads onto the canvas. Image files on the clipboard still take priority.
+- [x] **Drag images directly from a browser into the canvas.** Dragging an image off a web page reads the dropped URL (`text/uri-list` / `text/html`) and adds it.
+- [x] **Color palette extraction from images.** Select an image and the inspector shows a five-swatch dominant-color palette (median cut). Click a swatch to copy its hex. Falls back to a note when the image is cross-origin and can't be read.

@@ -178,6 +178,14 @@
     padding:0;overflow:hidden;flex:none;position:relative;
   }
   input[type=color]{position:absolute;inset:-4px;width:130%;height:130%;border:none;cursor:pointer;background:none;}
+  .palette{display:flex;gap:6px;flex-wrap:wrap;}
+  .pal-sw{
+    width:34px;height:34px;border-radius:9px;border:1px solid var(--border);cursor:pointer;
+    padding:0;flex:none;transition:transform .1s ease;
+  }
+  .pal-sw:hover{transform:scale(1.09);}
+  .pal-sw:active{transform:scale(.96);}
+  .pal-msg{font-size:11.5px;color:var(--ink-faint);line-height:1.4;}
   .ctrl{
     flex:1;height:34px;border:1px solid var(--border);background:var(--field-bg);
     border-radius:9px;padding:0 10px;font-family:var(--font);font-size:13px;color:var(--ink);
@@ -1683,7 +1691,9 @@ function renderInspector(){
         <input type="range" class="slider" id="fBW" min="0" max="40" value="${o.strokeWidth||0}"></div>
       <div class="field"><label>Border color</label><div class="row">
         <span class="swatch"><input type="color" id="fStroke" value="${o.stroke||'#ffffff'}"></span>
-        <input class="ctrl" id="fStrokeHex" value="${o.stroke||'#ffffff'}"></div></div>`;
+        <input class="ctrl" id="fStrokeHex" value="${o.stroke||'#ffffff'}"></div></div>
+      <div class="field"><label>Color palette</label>
+        <div class="palette" id="imgPalette"><div class="pal-msg">Reading colors…</div></div></div>`;
   } else {
     html+=`<div class="field"><label>Fill</label><div class="row">
         <span class="swatch"><input type="color" id="fFill" value="${o.fill==='none'?'#ffffff':o.fill}"></span>
@@ -1741,7 +1751,91 @@ function bindInspector(o){
   if($('fBack')) $('fBack').onclick=()=>bringForward(-1);
   if($('fFwd')) $('fFwd').onclick=()=>bringForward(1);
   if($('ipDel')) $('ipDel').onclick=deleteSelection;
+  if($('imgPalette')) showPalette(o);
 }
+
+// ============================================================
+//  Color palette extraction
+// ============================================================
+function showPalette(o){
+  const host=document.getElementById('imgPalette');
+  if(!host) return;
+  const rec=ensureImage(o.src);
+  const run=()=>{
+    if(document.getElementById('imgPalette')!==host) return; // inspector moved on
+    const cols=extractPalette(rec.img, 5);
+    if(cols===null){ host.innerHTML='<div class="pal-msg">Colors can’t be read from this image (it’s loaded cross-origin).</div>'; return; }
+    if(!cols.length){ host.innerHTML='<div class="pal-msg">No colors found.</div>'; return; }
+    host.innerHTML='';
+    cols.forEach(hex=>{
+      const sw=document.createElement('button');
+      sw.className='pal-sw'; sw.style.background=hex;
+      sw.title=hex+' · click to copy';
+      sw.onclick=()=>copyHex(hex);
+      host.appendChild(sw);
+    });
+  };
+  if(rec.loaded) run();
+  else { const prev=rec.img.onload; rec.img.onload=function(){ if(prev) prev.apply(this,arguments); run(); }; }
+}
+function copyHex(hex){
+  if(navigator.clipboard?.writeText){
+    navigator.clipboard.writeText(hex).then(()=>toast('Copied '+hex)).catch(()=>toast(hex));
+  } else toast(hex);
+}
+// Draw the image small, then median-cut the pixels into `count` swatches.
+// Returns null if the canvas is tainted (cross-origin) and unreadable.
+function extractPalette(img, count){
+  const max=72;
+  const sc=Math.min(1, max/Math.max(img.naturalWidth||1, img.naturalHeight||1));
+  const w=Math.max(1, Math.round((img.naturalWidth||1)*sc));
+  const h=Math.max(1, Math.round((img.naturalHeight||1)*sc));
+  const cnv=document.createElement('canvas'); cnv.width=w; cnv.height=h;
+  const c=cnv.getContext('2d'); c.drawImage(img,0,0,w,h);
+  let data;
+  try{ data=c.getImageData(0,0,w,h).data; }
+  catch(err){ return null; } // SecurityError — tainted by cross-origin source
+  const px=[];
+  for(let i=0;i<data.length;i+=4){
+    if(data[i+3]<125) continue; // skip near-transparent
+    px.push([data[i],data[i+1],data[i+2]]);
+  }
+  if(!px.length) return [];
+  return medianCut(px, count);
+}
+function medianCut(pixels, count){
+  let buckets=[pixels];
+  while(buckets.length<count){
+    let bi=-1, best=-1, bestCh=0;
+    for(let i=0;i<buckets.length;i++){
+      const {range,channel}=widestChannel(buckets[i]);
+      if(range>best){ best=range; bi=i; bestCh=channel; }
+    }
+    if(best<=0) break;
+    const b=buckets[bi].slice().sort((p,q)=>p[bestCh]-q[bestCh]);
+    const mid=b.length>>1;
+    buckets.splice(bi,1,b.slice(0,mid),b.slice(mid));
+  }
+  return buckets.filter(b=>b.length).map(b=>{
+    let r=0,g=0,bl=0;
+    for(const p of b){ r+=p[0]; g+=p[1]; bl+=p[2]; }
+    const n=b.length;
+    return rgbToHex(Math.round(r/n),Math.round(g/n),Math.round(bl/n));
+  });
+}
+function widestChannel(b){
+  let rmin=255,rmax=0,gmin=255,gmax=0,bmin=255,bmax=0;
+  for(const p of b){
+    if(p[0]<rmin)rmin=p[0]; if(p[0]>rmax)rmax=p[0];
+    if(p[1]<gmin)gmin=p[1]; if(p[1]>gmax)gmax=p[1];
+    if(p[2]<bmin)bmin=p[2]; if(p[2]>bmax)bmax=p[2];
+  }
+  // perceptual weighting so green range counts a touch more than blue
+  const rr=(rmax-rmin)*1.0, gr=(gmax-gmin)*1.2, br=(bmax-bmin)*0.8;
+  const max=Math.max(rr,gr,br);
+  return { range:max, channel: max===rr?0:(max===gr?1:2) };
+}
+function rgbToHex(r,g,b){ return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join(''); }
 function bindColor(colorId, hexId, prop, o, commit){
   const c=document.getElementById(colorId), h=document.getElementById(hexId);
   if(!c) return;
@@ -2036,20 +2130,59 @@ shortcutsModal.addEventListener('pointerdown', e=>{ if(e.target===shortcutsModal
 const drop=document.getElementById('drop');
 let dragDepth=0;
 window.addEventListener('dragover', e=>{ e.preventDefault(); });
-window.addEventListener('dragenter', e=>{ e.preventDefault(); dragDepth++; if([...e.dataTransfer.types].includes('Files')) drop.classList.add('show'); });
+window.addEventListener('dragenter', e=>{ e.preventDefault(); dragDepth++; const t=[...e.dataTransfer.types]; if(t.includes('Files')||t.includes('text/uri-list')) drop.classList.add('show'); });
 window.addEventListener('dragleave', e=>{ dragDepth--; if(dragDepth<=0){ drop.classList.remove('show'); dragDepth=0; } });
 window.addEventListener('drop', e=>{
   e.preventDefault(); dragDepth=0; drop.classList.remove('show');
   const r=cv.getBoundingClientRect();
   const pt=screenToWorld(e.clientX-r.left, e.clientY-r.top);
-  if(e.dataTransfer.files.length) importFiles(e.dataTransfer.files, pt);
+  if(e.dataTransfer.files.length){ importFiles(e.dataTransfer.files, pt); return; }
+  // image dragged out of a web page — no file, just a URL
+  const url=urlFromDrop(e.dataTransfer);
+  if(url) importUrl(url, pt);
 });
 window.addEventListener('paste', e=>{
   if(editingId!=null) return;
   const items=[...(e.clipboardData?.items||[])];
   const files=items.filter(i=>i.type.startsWith('image/')).map(i=>i.getAsFile()).filter(Boolean);
-  if(files.length){ importFiles(files); e.preventDefault(); }
+  if(files.length){ importFiles(files); e.preventDefault(); return; }
+  // no image on the clipboard — maybe a copied image link
+  const text=(e.clipboardData?.getData('text/plain')||'').trim();
+  if(isUrl(text) && importUrl(text)) e.preventDefault();
 });
+
+// Pull the best candidate URL out of a drop. Browsers expose a dragged
+// image as text/uri-list (and usually a wrapping <img> in text/html).
+function urlFromDrop(dt){
+  const uri=dt.getData('text/uri-list');
+  if(uri){ const line=uri.split('\n').find(l=>l && !l.startsWith('#')); if(line) return line.trim(); }
+  const html=dt.getData('text/html');
+  if(html){ const m=html.match(/<img[^>]+src=["']([^"']+)["']/i); if(m) return m[1]; }
+  const txt=(dt.getData('text/plain')||'').trim();
+  if(isUrl(txt)) return txt;
+  return '';
+}
+function isUrl(s){ return /^https?:\/\/\S+$/i.test(s); }
+
+// Load an off-canvas URL into an image object. Display always works; note
+// that cross-origin images can taint the canvas, which breaks PNG export
+// and palette extraction (handled gracefully where those run).
+function importUrl(url, worldPt){
+  url=(url||'').trim();
+  if(!isUrl(url)) return false;
+  const probe=new Image();
+  probe.onload=()=>{
+    pushHistory();
+    const base=worldPt || screenToWorld(W/2, H/2);
+    const o=placeImage(url, probe.naturalWidth, probe.naturalHeight, base.x, base.y);
+    scene.push(o); ensureImage(url);
+    render(); renderLayers();
+    toast('Image added');
+  };
+  probe.onerror=()=>toast("Couldn't load that image link");
+  probe.src=url;
+  return true;
+}
 
 // ============================================================
 //  Keyboard
