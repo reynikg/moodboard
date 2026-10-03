@@ -7,6 +7,27 @@ and this project uses date-based, incremental versioning. Dates are in YYYY-MM-D
 
 ---
 
+## [1.4.0] — 2026-10-03
+
+### Fixed
+- **Dragging images from web pages.** Dropping an image that sits inside a link (Google Images, Pinterest, most galleries) used to fail with "Couldn't load that image link", because the link's page URL was tried instead of the picture. The `<img>` (including the largest `srcset` entry and `data:` thumbnails) is now tried first, then each other candidate in turn.
+- **Layers list now updates by itself** when images are dropped, pasted or imported. Previously it only refreshed after another action such as Back/Forward.
+- **Double-click to rename a layer** works again. The list grabbed the pointer on every press, which redirected the double-click away from the name.
+- **No overlapping UI when the window shrinks.** The brand, tools and actions share one bar: the wordmark hides first, then the tools move to their own row, then they scroll sideways. Panels are positioned below the bar, and the board stays centred on resize.
+
+### Added
+- **Rename from the inspector.** The inspector header shows the object's name; click it to edit. The Layers list follows as you type.
+- **Export images as a .zip.** Turn on *Include images* in the Export popover to also download `moodboard-images.zip`: a folder with every image on the board, named after its layer. Images whose site won't release the file are listed as links in `image-links.txt`.
+- Images dropped or pasted from the web are embedded in the board when their site allows it, so they save, export and show a colour palette like local files.
+- `⌥1` shortcut to show or hide Layers.
+
+### Changed
+- **Layers is a drawer.** It starts closed behind a *Layers* button at the bottom left and slides in from the left edge when clicked.
+- PNG export no longer fails outright when the board has an image from a site that blocks it. That image is left out and the toast says so.
+- Apple-style polish: critically damped spring motion for panels, instant press feedback, delayed tooltips, keyboard focus rings, labels for icon buttons, dark mode that follows the system until you choose, and support for Reduce Motion, Reduce Transparency and Increase Contrast.
+
+---
+
 ## [1.3.0] — 2026
 
 More ways to get images onto the board, and a way to read color back out of them.
