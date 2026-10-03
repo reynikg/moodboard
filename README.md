@@ -38,6 +38,14 @@ Images from the web are embedded in the board when the site allows it, so they k
 - **Export** (`⇧⌘E`) creates a transparent PNG at 1×, 2× or 3× with adjustable padding.
 - Turn on **Include images** to also download `moodboard-images.zip` — a folder with every image on the board, named after its layer.
 
+**Images from Pinterest and similar sites**
+
+Some sites, Pinterest among them, show their images on your board but don't let other web pages download them. When your board has images like that, Export opens **Save Your Board** instead: your full board on a transparent background. Right-click it and choose **Save Image As…** (or **Copy Image**). This is your browser's own save feature — the same one you'd use on the site itself — so nothing is bypassed. You can also download the PNG without those images.
+
+**When something goes wrong**
+
+Errors appear in the middle of the screen with a short explanation. Click **Learn more**, or open **Settings → Error messages explained**, for what each message means and what to do about it.
+
 **Comfort**
 - Light and dark mode (follows your system until you choose).
 - Respects Reduce Motion, Reduce Transparency and Increase Contrast.
@@ -65,8 +73,9 @@ On Windows and Linux, use `Ctrl` in place of `⌘`.
 
 ## Known limitations
 
-- Some websites block their images from being loaded elsewhere. Those can't be dragged in — copy and paste the image instead.
-- Images that are linked rather than embedded (because their site refuses to share the file) are left out of PNG exports and listed as links in the images zip.
+- Some websites block their images from being shown elsewhere at all. Those can't be dragged in — copy and paste the image instead.
+- Images whose site won't share the file (such as Pinterest) can't go into an automatic PNG download; use **Save Your Board** as described above. In the images zip they're listed as links.
+- **Save Image As…** on the board works in Chrome and Edge. If your browser doesn't offer it there, take a screenshot instead.
 - Boards with many embedded images produce large `.json` files.
 - With **Include images** on, your browser may ask once to allow multiple downloads.
 

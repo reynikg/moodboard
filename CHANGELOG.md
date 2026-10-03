@@ -20,10 +20,14 @@ and this project uses date-based, incremental versioning. Dates are in YYYY-MM-D
 - **Export images as a .zip.** Turn on *Include images* in the Export popover to also download `moodboard-images.zip`: a folder with every image on the board, named after its layer. Images whose site won't release the file are listed as links in `image-links.txt`.
 - Images dropped or pasted from the web are embedded in the board when their site allows it, so they save, export and show a colour palette like local files.
 - `⌥1` shortcut to show or hide Layers.
+- **Errors appear in the middle of the screen** as an alert with **Learn more**, instead of a toast that disappears. Success messages stay as toasts.
+- **Error messages explained** (Settings, under Keyboard shortcuts): a guide to every error message — what it means and what to do.
+- **Save Your Board sheet.** When some images come from a site that won't share the file (e.g. Pinterest), Export shows the full board on a transparent background so you can save it with the browser's own **Save Image As…** / **Copy Image**, or download the PNG without those images.
+- Dropping non-image files, or images the browser can't open (e.g. HEIC in Chrome), now says so instead of failing silently.
 
 ### Changed
 - **Layers is a drawer.** It starts closed behind a *Layers* button at the bottom left and slides in from the left edge when clicked.
-- PNG export no longer fails outright when the board has an image from a site that blocks it. That image is left out and the toast says so.
+- PNG export no longer fails outright when the board has an image from a site that blocks it (see Save Your Board). Very large boards are scaled down to fit the browser's size limit instead of failing.
 - Apple-style polish: critically damped spring motion for panels, instant press feedback, delayed tooltips, keyboard focus rings, labels for icon buttons, dark mode that follows the system until you choose, and support for Reduce Motion, Reduce Transparency and Increase Contrast.
 
 ---

@@ -403,20 +403,20 @@
   }
   .set-link:hover{background:var(--hover);}
 
-  /* ---------- shortcuts modal ---------- */
-  #shortcutsModal{
+  /* ---------- modals (shortcuts, error guide, save sheet) ---------- */
+  .modal{
     position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;
     background:rgba(0,0,0,.34);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
     opacity:0;transition:opacity .2s;
   }
-  #shortcutsModal.show{display:flex;opacity:1;}
+  .modal.show{display:flex;opacity:1;}
   .modal-card{
     width:min(620px,92vw);max-height:84vh;overflow-y:auto;
     background:var(--glass-strong);backdrop-filter:saturate(180%) blur(30px);-webkit-backdrop-filter:saturate(180%) blur(30px);
     border:.5px solid var(--border);border-radius:24px;box-shadow:0 30px 80px rgba(0,0,0,.45);
     padding:30px 34px 34px;transform:scale(.96);transition:transform .24s cubic-bezier(.2,.8,.2,1);
   }
-  #shortcutsModal.show .modal-card{transform:scale(1);}
+  .modal.show .modal-card{transform:scale(1);}
   .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;}
   .modal-head h2{font-size:21px;font-weight:700;letter-spacing:-.02em;}
   .modal-close{
@@ -438,6 +438,62 @@
     box-shadow:0 1px 0 var(--border);
   }
 
+  /* ---------- error alert: centred, so it can't be missed ---------- */
+  #alert{
+    position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;padding:16px;
+    background:rgba(0,0,0,.18);opacity:0;visibility:hidden;
+    transition:opacity .18s ease, visibility 0s linear .2s;
+  }
+  #alert.show{opacity:1;visibility:visible;transition-delay:0s;}
+  .alert-card{
+    width:min(320px,100%);text-align:center;padding:22px 20px 16px;border-radius:20px;
+    background:var(--glass-strong);backdrop-filter:saturate(180%) blur(30px);-webkit-backdrop-filter:saturate(180%) blur(30px);
+    border:.5px solid var(--border);box-shadow:0 24px 60px rgba(0,0,0,.3), var(--edge-light);
+    transform:scale(1.06);transition:transform var(--spring-dur) var(--spring);
+  }
+  #alert.show .alert-card{transform:scale(1);}
+  .alert-icon{width:44px;height:44px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;background:rgba(255,149,0,.14);color:#ff9500;}
+  .alert-icon svg{width:24px;height:24px;}
+  .alert-card h3{font-size:16px;font-weight:650;letter-spacing:-.012em;line-height:1.25;margin-bottom:6px;}
+  .alert-card p{font-size:13px;line-height:1.45;color:var(--ink-soft);}
+  .alert-actions{display:flex;gap:8px;margin-top:18px;}
+  .alert-actions button{
+    flex:1;height:36px;border:none;border-radius:10px;cursor:pointer;
+    font-family:var(--font);font-size:13.5px;font-weight:600;transition:background .15s, transform .1s;
+  }
+  .alert-actions button:active{transform:scale(.97);transition-duration:.08s;}
+  .btn-secondary{background:var(--seg-bg);color:var(--ink);}
+  .btn-secondary:hover{background:var(--hover);}
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-primary:hover{filter:brightness(1.06);}
+
+  /* ---------- error guide ---------- */
+  .err-intro{font-size:13px;line-height:1.5;color:var(--ink-soft);margin:-8px 0 18px;}
+  .err-item{padding:14px 14px 13px;border-radius:14px;margin:0 -14px 2px;transition:background .5s ease;}
+  .err-item.flash{background:var(--accent-soft);transition:none;}
+  .err-item h3{font-size:14px;font-weight:650;letter-spacing:-.008em;margin-bottom:5px;}
+  .err-item p{font-size:13px;line-height:1.5;color:var(--ink-soft);}
+  .err-item p + p{margin-top:5px;}
+  .err-item b{font-weight:600;color:var(--ink);}
+
+  /* ---------- save sheet: the full board, ready for the browser's own Save Image ---------- */
+  .save-card{width:min(760px,94vw);}
+  .save-card .lede{font-size:13.5px;line-height:1.5;color:var(--ink-soft);margin:-10px 0 16px;}
+  .save-frame{
+    border-radius:14px;padding:14px;display:grid;place-items:center;border:.5px solid var(--border);
+    /* checkerboard = "transparent"; it is behind the canvas, not part of the saved image */
+    background:conic-gradient(var(--seg-bg) 25%,transparent 0 50%,var(--seg-bg) 0 75%,transparent 0) 0 0/18px 18px;
+  }
+  .save-frame canvas{position:static;display:block;max-width:100%;max-height:48vh;width:auto;height:auto;cursor:context-menu;user-select:auto;}
+  .save-steps{margin:16px 0 0;padding:0;list-style:none;display:grid;gap:8px;font-size:13px;line-height:1.45;color:var(--ink-soft);}
+  .save-steps li{display:flex;gap:10px;align-items:flex-start;}
+  .save-steps .n{flex:none;width:20px;height:20px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:700;display:grid;place-items:center;margin-top:-1px;}
+  .save-steps b{color:var(--ink);font-weight:600;}
+  .save-note{font-size:12px;line-height:1.45;color:var(--ink-faint);margin-top:12px;}
+  .save-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap;}
+  .save-actions button{height:36px;padding:0 16px;border:none;border-radius:10px;cursor:pointer;font-family:var(--font);font-size:13.5px;font-weight:600;transition:background .15s, transform .1s;}
+  .save-actions button:active{transform:scale(.97);transition-duration:.08s;}
+
   /* export: optional images archive */
   #exportPop .set-row{padding:4px 0 14px;border-bottom:none;}
   #exportPop .primary .lbl-sub{font-weight:500;opacity:.8;}
@@ -452,14 +508,14 @@
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation-duration:.01ms !important;animation-delay:0s !important;}
     /* panels cross-fade in place instead of sliding */
-    #inspector,#layers,#exportPop,#settingsPop,#connectorFlyout,.modal-card{transform:none !important;transition:opacity .18s ease, visibility 0s linear .18s !important;}
+    #inspector,#layers,#exportPop,#settingsPop,#connectorFlyout,.modal-card,.alert-card{transform:none !important;transition:opacity .18s ease, visibility 0s linear .18s !important;}
     #inspector.show,#layers.open{transition:opacity .18s ease !important;}
     #connectorFlyout,#connectorFlyout.show{transform:translateX(-50%) !important;}
     .tool,.switch::after,.pal-sw{transition:none !important;}
   }
   @media (prefers-reduced-transparency:reduce){
     .panel,.modal-card{background:var(--glass-strong);backdrop-filter:none;-webkit-backdrop-filter:none;}
-    #drop,#shortcutsModal{backdrop-filter:none;-webkit-backdrop-filter:none;}
+    #drop,.modal,#alert{backdrop-filter:none;-webkit-backdrop-filter:none;}
   }
   @media (prefers-contrast:more){
     :root{--border:rgba(0,0,0,.4);--border-strong:rgba(0,0,0,.55);--ink-faint:#6e6e73;--ink-soft:#3a3a3c;}
@@ -569,6 +625,7 @@
     <input type="range" class="slider" id="gapSlider" min="0" max="16" value="6" style="width:92px;flex:none">
   </div>
   <button class="set-link" id="openShortcuts"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 13h.01M18 13h.01M9 13h6"/></svg>Keyboard shortcuts</button>
+  <button class="set-link" id="openErrors"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5h.01"/></svg>Error messages explained</button>
 </div>
 
 <!-- zoom bar -->
@@ -589,7 +646,7 @@
 
 <textarea id="textEdit" spellcheck="false"></textarea>
 <!-- shortcuts modal -->
-<div id="shortcutsModal">
+<div id="shortcutsModal" class="modal">
   <div class="modal-card">
     <div class="modal-head">
       <h2>Keyboard Shortcuts</h2>
@@ -636,6 +693,52 @@
         <div class="sc-item"><span class="desc">Paste image</span><span class="keys"><span class="key">⌘</span><span class="key">V</span></span></div>
         <div class="sc-item"><span class="desc">This window</span><span class="keys"><span class="key">?</span></span></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- error alert -->
+<div id="alert" role="alertdialog" aria-modal="true" aria-labelledby="alertTitle" aria-describedby="alertMsg">
+  <div class="alert-card">
+    <div class="alert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+    <h3 id="alertTitle"></h3>
+    <p id="alertMsg"></p>
+    <div class="alert-actions">
+      <button class="btn-secondary" id="alertMore">Learn more</button>
+      <button class="btn-primary" id="alertOk">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- error guide -->
+<div id="errorsModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>Error Messages</h2>
+      <button class="modal-close" id="errClose" aria-label="Close"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <p class="err-intro">What each message means and what you can do about it. Nothing here is ever sent anywhere — Moodboard runs entirely in your browser.</p>
+    <div id="errList"></div>
+  </div>
+</div>
+
+<!-- save sheet: shown when some images can't go into an automatic download -->
+<div id="saveSheet" class="modal">
+  <div class="modal-card save-card">
+    <div class="modal-head">
+      <h2>Save Your Board</h2>
+      <button class="modal-close" id="saveClose" aria-label="Close"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <p class="lede" id="saveLede"></p>
+    <div class="save-frame"><canvas id="saveCanvas"></canvas></div>
+    <ol class="save-steps">
+      <li><span class="n">1</span><span><b>Right-click</b> (or Control-click) the board above.</span></li>
+      <li><span class="n">2</span><span>Choose <b>Save Image As…</b> to get a PNG with a transparent background, or <b>Copy Image</b> to paste it into Keynote, Figma or similar.</span></li>
+    </ol>
+    <p class="save-note" id="saveNote"></p>
+    <div class="save-actions">
+      <button class="btn-secondary" id="saveWithout"></button>
+      <button class="btn-primary" id="saveDone">Done</button>
     </div>
   </div>
 </div>
@@ -1316,11 +1419,19 @@ function measureText(o){
 //  Image import (file / drop / paste)
 // ============================================================
 function importFiles(files, worldPt){
-  const imgs = [...files].filter(f=>f.type.startsWith('image/'));
-  if(!imgs.length) return;
+  const all=[...files];
+  const imgs = all.filter(f=>f.type.startsWith('image/') || /\.(heic|heif|avif|webp|svg)$/i.test(f.name));
+  const skipped = all.length-imgs.length;
+  if(!imgs.length){ if(skipped) showError('file-type', {n:skipped}); return; }
   pushHistory();
   let idx=0, base = worldPt || screenToWorld(W/2, H/2);
-  let added=0;
+  let added=0, failed=0, done=0;
+  const finish=()=>{
+    if(++done<imgs.length) return;
+    if(failed) showError('image-decode', {n:failed});
+    else if(skipped) showError('file-type', {n:skipped});
+    else toast(added>1? added+' images added':'Image added');
+  };
   imgs.forEach(file=>{
     const reader = new FileReader();
     reader.onload = e=>{
@@ -1328,14 +1439,15 @@ function importFiles(files, worldPt){
       const probe = new Image();
       probe.onload = ()=>{
         const off = idx*26;
-        const o = placeImage(src, probe.naturalWidth, probe.naturalHeight, base.x+off, base.y+off);
+        const o = placeImage(src, probe.naturalWidth||320, probe.naturalHeight||240, base.x+off, base.y+off);
         scene.push(o); ensureImage(src);
         added++; idx++;
-        render();
-        if(added===imgs.length) toast(added>1? added+' images added':'Image added');
+        render(); finish();
       };
+      probe.onerror = ()=>{ failed++; finish(); };
       probe.src = src;
     };
+    reader.onerror = ()=>{ failed++; finish(); };
     reader.readAsDataURL(file);
   });
 }
@@ -1348,7 +1460,7 @@ function autoLayout(){
       ? scene.filter(o=>selection.has(o.id))
       : scene.slice();
   const imgs = targets.filter(o=>o.type==='image');
-  if(imgs.length<2){ toast('Add a few images first'); return; }
+  if(imgs.length<2){ showError('layout-few'); return; }
   pushHistory();
 
   const gap = 22;
@@ -1916,7 +2028,11 @@ function showPalette(o){
   const run=()=>{
     if(document.getElementById('imgPalette')!==host) return; // inspector moved on
     const cols=extractPalette(rec.img, 5);
-    if(cols===null){ host.innerHTML='<div class="pal-msg">Colors can’t be read from this image (it’s loaded cross-origin).</div>'; return; }
+    if(cols===null){
+      host.innerHTML='<div class="pal-msg">Colors can’t be read from this image — its site doesn’t allow it. <a href="#" id="palWhy" style="color:var(--accent);text-decoration:none">Why?</a></div>';
+      document.getElementById('palWhy').onclick=e=>{ e.preventDefault(); openErrors('palette-blocked'); };
+      return;
+    }
     if(!cols.length){ host.innerHTML='<div class="pal-msg">No colors found.</div>'; return; }
     host.innerHTML='';
     cols.forEach(hex=>{
@@ -1932,8 +2048,8 @@ function showPalette(o){
 }
 function copyHex(hex){
   if(navigator.clipboard?.writeText){
-    navigator.clipboard.writeText(hex).then(()=>toast('Copied '+hex)).catch(()=>toast(hex));
-  } else toast(hex);
+    navigator.clipboard.writeText(hex).then(()=>toast('Copied '+hex)).catch(()=>showError('copy-failed',{hex}));
+  } else showError('copy-failed',{hex});
 }
 // Draw the image small, then median-cut the pixels into `count` swatches.
 // Returns null if the canvas is tainted (cross-origin) and unreadable.
@@ -2194,35 +2310,92 @@ function loadBoard(file){
       selection.clear();
       scene.forEach(o=>{ if(o.type==='image') ensureImage(o.src); });
       render(); renderInspector(); renderLayers(); toast('Board loaded');
-    }catch(err){ toast('Could not read that file'); }
+    }catch(err){ showError('board-read'); }
   };
   r.readAsDataURL ? r.readAsText(file) : r.readAsText(file);
 }
 
 // Export the board as a transparent PNG. Images that came from another site are
-// re-fetched as untainted copies first; any whose site refuses are left out (rather
-// than the whole export failing with a browser security error).
+// re-fetched as clean copies first. If a site refuses (Pinterest and others), a PNG
+// file can't be built with that image in it — the browser forbids reading its pixels —
+// so the Save Your Board sheet opens instead, where the browser's own "Save Image As…"
+// can save the full board. Returns 'done' | 'sheet' | 'error'.
 async function exportPNG(scale, pad){
-  if(!scene.length){ toast('Nothing to export'); return; }
-  const b=bbox(scene);
-  const ow=Math.ceil((b.w+pad*2)*scale);
-  const oh=Math.ceil((b.h+pad*2)*scale);
-  const imgs=new Map(); let skipped=0;
+  if(!scene.length){ showError('export-empty'); return 'error'; }
+  const plan=planExport(scale, pad);
+  const imgs=new Map(), blocked=[];
   await Promise.all([...new Set(scene.filter(o=>o.type==='image').map(o=>o.src))].map(async src=>{
     const img=await exportableImage(src);
-    imgs.set(src, img); if(!img) skipped++;
+    imgs.set(src, img);
+    if(!img && ensureImage(src).loaded) blocked.push(src);   // shows on the board, but can't go in a file
   }));
-  const off=document.createElement('canvas');
-  off.width=ow; off.height=oh;
-  const c=off.getContext('2d');
-  c.setTransform(scale,0,0,scale, (-b.x+pad)*scale, (-b.y+pad)*scale);
-  // transparent background (no fill)
-  for(const o of scene) drawObject(c, o, imgs);
-  const blob=await new Promise(res=>{ try{ off.toBlob(res,'image/png'); }catch(_){ res(null); } });
-  if(!blob){ toast("Couldn't export — an image blocks it"); return; }
+  if(blocked.length){ openSaveSheet(plan, imgs, blocked.length); return 'sheet'; }
+  const blob=await renderExport(plan, imgs);
+  if(!blob){ showError('export-failed'); return 'error'; }
   download(blob,'moodboard.png');
-  toast(skipped ? `Exported ${scale}× PNG · ${skipped} image${skipped>1?'s':''} left out (site blocks export)` : `Exported ${scale}× PNG`);
+  if(plan.reduced) showError('export-too-large', {scale:plan.scale});
+  else toast(`Exported ${scale}× PNG`);
+  return 'done';
 }
+// Fit the export inside the browser's canvas limits, lowering the scale if needed.
+function planExport(scale, pad){
+  const b=bbox(scene), MAX_SIDE=16384, MAX_AREA=64e6;
+  const size=sc=>({ ow:Math.ceil((b.w+pad*2)*sc), oh:Math.ceil((b.h+pad*2)*sc) });
+  let {ow,oh}=size(scale);
+  const f=Math.min(1, MAX_SIDE/ow, MAX_SIDE/oh, Math.sqrt(MAX_AREA/(ow*oh)));
+  const reduced=f<1;
+  if(reduced){ scale*=f*0.999; ({ow,oh}=size(scale)); }
+  return { b, pad, scale, ow, oh, reduced };
+}
+// Draw the board (transparent background) onto `cnv`; resolve to a PNG blob, or null.
+function renderExport(plan, imgs, cnv=document.createElement('canvas')){
+  cnv.width=plan.ow; cnv.height=plan.oh;
+  const c=cnv.getContext('2d');
+  if(!c) return Promise.resolve(null);
+  c.clearRect(0,0,plan.ow,plan.oh);
+  c.setTransform(plan.scale,0,0,plan.scale, (-plan.b.x+plan.pad)*plan.scale, (-plan.b.y+plan.pad)*plan.scale);
+  for(const o of scene) drawObject(c, o, imgs);
+  return new Promise(res=>{ try{ cnv.toBlob(res,'image/png'); }catch(_){ res(null); } });
+}
+
+// ---- save sheet ----------------------------------------------
+const saveSheet=document.getElementById('saveSheet');
+function openSaveSheet(plan, imgs, nBlocked){
+  // the on-screen copies of every image, including ones the site won't let us read;
+  // the browser can still save this canvas itself when the user asks it to
+  const shown=new Map();
+  for(const src of imgs.keys()){ const rec=ensureImage(src); shown.set(src, rec.loaded?rec.img:null); }
+  const cnv=document.getElementById('saveCanvas');
+  cnv.width=plan.ow; cnv.height=plan.oh;
+  const c=cnv.getContext('2d');
+  c.clearRect(0,0,plan.ow,plan.oh);
+  c.setTransform(plan.scale,0,0,plan.scale, (-plan.b.x+plan.pad)*plan.scale, (-plan.b.y+plan.pad)*plan.scale);
+  for(const o of scene) drawObject(c, o, shown);
+  cnv.setAttribute('aria-label','Your board, ready to save');
+
+  document.getElementById('saveLede').textContent =
+    `${plural(nBlocked,'image')} on your board ${nBlocked===1?'comes':'come'} from a site (such as Pinterest) that doesn't let other pages download ${nBlocked===1?'it':'them'}, so the Export button can't put ${nBlocked===1?'it':'them'} in a file. Here's your full board instead — save it with your browser.`;
+  document.getElementById('saveNote').textContent =
+    `${plan.ow} × ${plan.oh} px`+(plan.reduced?` — reduced to ${plan.scale.toFixed(2).replace(/\.?0+$/,'')}× to fit your browser's size limit.`:'.')+
+    ' If your browser has no Save Image option here, take a screenshot instead (⇧⌘4 on a Mac).';
+  const without=document.getElementById('saveWithout');
+  without.textContent=`Download without ${plural(nBlocked,'image')}`;
+  without.onclick=async()=>{
+    const blob=await renderExport(plan, imgs);
+    if(!blob){ showError('export-failed'); return; }
+    download(blob,'moodboard.png'); toast('Downloaded PNG without '+plural(nBlocked,'image'));
+  };
+  saveSheet.classList.add('show');
+  setTimeout(()=>document.getElementById('saveDone').focus(), 30);
+}
+function closeSaveSheet(){
+  saveSheet.classList.remove('show');
+  const cnv=document.getElementById('saveCanvas'); cnv.width=cnv.height=0;   // free the memory
+}
+document.getElementById('saveDone').onclick=closeSaveSheet;
+document.getElementById('saveClose').onclick=closeSaveSheet;
+saveSheet.addEventListener('pointerdown', e=>{ if(e.target===saveSheet) closeSaveSheet(); });
+
 // An <img> that can be drawn without tainting the canvas, or null.
 async function exportableImage(src){
   const rec=ensureImage(src);
@@ -2257,12 +2430,13 @@ async function exportImagesZip(){
     used.add(name.toLowerCase());
     files.push({ name:'moodboard-images/'+name, data:new Uint8Array(await blob.arrayBuffer()) });
   }
-  if(!files.length && !links.length){ toast('No images to include'); return; }
+  if(!files.length && !links.length){ showError('zip-empty'); return null; }
   if(links.length) files.push({ name:'moodboard-images/image-links.txt',
     data:new TextEncoder().encode("These images couldn't be downloaded (their site blocks it). Links:\n\n"+links.join('\n')+'\n') });
   download(makeZip(files), 'moodboard-images.zip');
   const got=files.length-(links.length?1:0);
-  toast(`Saved ${got} image${got===1?'':'s'} to moodboard-images.zip`+(links.length?` · ${links.length} as links`:''));
+  if(!links.length) toast(`Saved ${plural(got,'image')} to moodboard-images.zip`);
+  return { saved:got, links:links.length };
 }
 function safeFileName(s){ return String(s||'').replace(/[\\/:*?"<>|\u0000-\u001f]+/g,' ').replace(/\s+/g,' ').trim().slice(0,80); }
 function extFor(mime, src){
@@ -2383,10 +2557,17 @@ function syncExportLabel(){ document.getElementById('doExportLbl').textContent =
 swZip.onclick=()=>{ settings.exportZip=!settings.exportZip; swZip.classList.toggle('on',settings.exportZip); swZip.setAttribute('aria-checked',settings.exportZip); syncExportLabel(); saveSettings(); };
 document.getElementById('doExport').onclick=async ()=>{
   exportPop.classList.remove('show');
-  if(!scene.length){ toast('Nothing to export'); return; }
+  if(!scene.length){ showError('export-empty'); return; }
   toast(settings.exportZip ? 'Preparing PNG and images…' : 'Preparing PNG…');
-  await exportPNG(expRes, expPad);
-  if(settings.exportZip) await exportImagesZip();
+  const status=await exportPNG(expRes, expPad);
+  if(status==='error' || !settings.exportZip) return;
+  const z=await exportImagesZip();
+  if(z && z.links){
+    const msg=ERRORS['zip-partial'].msg({n:z.links});
+    // the save sheet already explains the situation — add a line there instead of stacking an alert on it
+    if(status==='sheet') document.getElementById('saveNote').textContent+=' Images .zip: '+msg;
+    else showError('zip-partial', {n:z.links});
+  }
 };
 
 // ============================================================
@@ -2455,7 +2636,7 @@ window.addEventListener('drop', e=>{
   // dataTransfer is emptied as soon as this handler returns.
   const urls=urlsFromDrop(dt);
   if(urls.length) importUrl(urls, pt);
-  else toast("That drop didn't contain an image");
+  else showError('drop-empty');
 });
 window.addEventListener('paste', e=>{
   if(editingId!=null) return;
@@ -2540,7 +2721,7 @@ function importUrl(candidates, worldPt){
       return;
     }
     clearTimeout(slow);
-    toast("Couldn't load that image — try copy and paste instead");
+    showError('image-link');
   })();
   return true;
 }
@@ -2599,7 +2780,13 @@ window.addEventListener('keydown', e=>{
   if(tag==='input'||tag==='textarea'||e.target.isContentEditable) return;
   const meta=e.metaKey||e.ctrlKey;
 
-  // overlays first
+  // overlays first — an open alert swallows everything except dismissing it
+  if(alertEl.classList.contains('show')){
+    if(e.key==='Escape'||e.key==='Enter'){ e.preventDefault(); closeAlert(); }
+    return;
+  }
+  if(e.key==='Escape' && saveSheet.classList.contains('show')){ closeSaveSheet(); return; }
+  if(e.key==='Escape' && errorsModal.classList.contains('show')){ closeErrors(); return; }
   if(e.key==='?' || (e.shiftKey && e.key==='/')){ e.preventDefault(); shortcutsModal.classList.contains('show')?closeShortcuts():openShortcuts(); return; }
   if(e.key==='Escape'){
     if(shortcutsModal.classList.contains('show')){ closeShortcuts(); return; }
@@ -2647,6 +2834,119 @@ function nudge(e){
   render(); renderInspectorLive();
   clearTimeout(nudgeTimer); nudgeTimer=setTimeout(pushHistory, 400);
 }
+
+// ============================================================
+//  Errors — one catalog drives both the centred alert and the
+//  "Error messages explained" guide, so they can't drift apart.
+//  `msg` is the short alert text (may use details `d`); `what`/`fix`
+//  are the longer explanation in the guide.
+// ============================================================
+const plural=(n,word)=>n+' '+word+(n===1?'':'s');
+const ERRORS={
+  'image-link':{ title:"Couldn't add that image",
+    msg:()=>"The image didn't load. Its site may not allow its pictures to be shown on other pages.",
+    what:"When you drag or paste an image from a web page, Moodboard tries every address the browser hands over for it. None of them loaded as a picture — usually because the site blocks its images from appearing anywhere else, or the image was removed.",
+    fix:"Right-click the image on the website, choose <b>Copy Image</b>, then paste here with <b>⌘V</b>. Or save the image to your computer and drag the file in." },
+  'drop-empty':{ title:"No image in that drop",
+    msg:()=>"What you dropped was text or a link to a page, not a picture.",
+    what:"The drop didn't contain an image or an image address — for example, a selection of text, or a link to a web page.",
+    fix:"Drag the picture itself rather than its caption or the link around it. If that doesn't work, use <b>Copy Image</b> and paste with <b>⌘V</b>." },
+  'file-type':{ title:"Some files were skipped",
+    msg:d=>`${plural(d.n,'file')} ${d.n===1?"isn't an image":"aren't images"}, so ${d.n===1?'it was':'they were'} left out.`,
+    what:"Only image files can go on the board. Documents, videos and other files are ignored.",
+    fix:"JPEG, PNG, GIF, WebP and SVG work in every browser. If a format isn't accepted, open it in Preview and choose <b>File → Export…</b> as JPEG or PNG." },
+  'image-decode':{ title:"Couldn't open an image",
+    msg:d=>`${plural(d.n,'image')} couldn't be read. The file may be damaged, or in a format this browser can't show.`,
+    what:"The file says it's an image, but the browser couldn't display it. This happens with damaged files and with formats some browsers don't support — HEIC photos from an iPhone in Chrome, for example.",
+    fix:"Open the file in Preview and choose <b>File → Export…</b> as JPEG or PNG, then drag that in." },
+  'board-read':{ title:"Couldn't open that board",
+    msg:()=>"That file isn't a Moodboard board, or it's damaged.",
+    what:"Open (⌘O) expects a .json file made with Save (⌘S). This file couldn't be read as one.",
+    fix:"Choose a file you saved from Moodboard. If a board file was edited by hand or cut short during download, it may no longer open." },
+  'export-empty':{ title:"Nothing to export",
+    msg:()=>"Your board is empty. Add some images first.",
+    what:"Export makes a picture of what's on the board, and there's nothing there yet.",
+    fix:"Drag images in, paste with <b>⌘V</b>, or use the image tool (<b>I</b>)." },
+  'export-blocked':{ title:"Some images can't be downloaded automatically", guideOnly:true,
+    what:"Images from some sites — Pinterest, for example — appear on your board, but the site doesn't give other web pages permission to read the image data. Your browser enforces this, so the Export button can't build a PNG file that contains them.",
+    fix:"Moodboard opens <b>Save Your Board</b> with the complete board on a transparent background. Right-click it and choose <b>Save Image As…</b> or <b>Copy Image</b>. That uses your browser's own save feature — the same one you'd use to save an image on the site itself. You can also download the PNG without those images." },
+  'export-too-large':{ title:"Exported at a smaller size",
+    msg:d=>`Your board is too big to export at that resolution, so it was saved at ${d.scale.toFixed(2).replace(/\.?0+$/,'')}× instead.`,
+    what:"Browsers can only make images up to a certain size (about 16,000 pixels on a side). At the resolution you picked, your board would be bigger than that.",
+    fix:"This is usually fine. For a sharper result, export at 1× or 2×, or select part of the board, move it somewhere empty and export a smaller arrangement." },
+  'export-failed':{ title:"Export didn't work",
+    msg:()=>"Your browser couldn't create the PNG. Try a lower resolution.",
+    what:"The browser ran out of room while drawing the image — most often on very large boards at 3×.",
+    fix:"Choose 1× or 2× and export again. Closing other tabs or reloading the page (after saving with ⌘S) can help." },
+  'zip-empty':{ title:"No images to include",
+    msg:()=>"Your board has no images, so there's nothing to put in the .zip.",
+    what:"<b>Include images</b> collects the pictures on your board. Text, shapes and lines aren't images, so they aren't included.",
+    fix:"Add images to the board, or turn off <b>Include images</b> in Export." },
+  'zip-partial':{ title:"Some images were saved as links",
+    msg:d=>`${plural(d.n,'image')} couldn't be downloaded from ${d.n===1?'its':'their'} site, so ${d.n===1?'its link is':'their links are'} listed in image-links.txt in the .zip.`,
+    what:"Some sites (like Pinterest) don't allow other pages to download their images. Moodboard doesn't work around that, so instead of the file you get the address it came from.",
+    fix:"Open each link from <b>image-links.txt</b> and save the image from the site itself — on Pinterest, use the <b>…</b> menu on a pin and choose <b>Download image</b>." },
+  'layout-few':{ title:"Auto-arrange needs two or more images",
+    msg:()=>"Add at least two images, or select two or more, then try again.",
+    what:"Auto-arrange (L) packs images into a mosaic. With fewer than two images there's nothing to arrange.",
+    fix:"Add more images, or select at least two of them and press <b>L</b>." },
+  'copy-failed':{ title:"Couldn't copy the color",
+    msg:d=>`Your browser didn't allow copying. The color is ${d.hex}.`,
+    what:"Copying to the clipboard needs your browser's permission, and it was blocked or isn't available here.",
+    fix:"Note the hex code from the message, or allow clipboard access for this page in your browser's settings." },
+  'palette-blocked':{ title:"Colors can't be read from this image", guideOnly:true,
+    what:"Shown in the inspector instead of a palette. The image comes from a site that doesn't let other pages read its pixels — the same reason as <b>Some images can't be downloaded automatically</b>.",
+    fix:"Copy the image on the website and paste it here with <b>⌘V</b>; pasted images can always be read." },
+};
+
+const alertEl=document.getElementById('alert');
+let alertCode=null, alertReturnFocus=null;
+function showError(code, d={}){
+  const e=ERRORS[code]; if(!e) return;
+  alertCode=code;
+  document.getElementById('alertTitle').textContent=e.title;
+  document.getElementById('alertMsg').textContent=e.msg(d);
+  if(!alertEl.classList.contains('show')) alertReturnFocus=document.activeElement;
+  alertEl.classList.add('show');
+  document.getElementById('toast').classList.remove('show');
+  setTimeout(()=>document.getElementById('alertOk').focus(), 30);
+}
+function closeAlert(){
+  if(!alertEl.classList.contains('show')) return;
+  alertEl.classList.remove('show');
+  try{ alertReturnFocus?.focus?.(); }catch(_){}
+}
+document.getElementById('alertOk').onclick=closeAlert;
+document.getElementById('alertMore').onclick=()=>{ const c=alertCode; closeAlert(); openErrors(c); };
+alertEl.addEventListener('pointerdown', e=>{ if(e.target===alertEl) closeAlert(); });
+
+const errorsModal=document.getElementById('errorsModal');
+function openErrors(focusCode){
+  settingsPop.classList.remove('show');
+  const list=document.getElementById('errList');
+  if(!list.children.length){
+    for(const [code,e] of Object.entries(ERRORS)){
+      const it=document.createElement('div');
+      it.className='err-item'; it.id='err-'+code;
+      it.innerHTML=`<h3>${e.title}</h3><p>${e.what}</p><p><b>What to do:</b> ${e.fix}</p>`;
+      list.appendChild(it);
+    }
+  }
+  errorsModal.classList.add('show');
+  const card=errorsModal.querySelector('.modal-card');
+  card.scrollTop=0;
+  const it=focusCode && document.getElementById('err-'+focusCode);
+  if(it){
+    requestAnimationFrame(()=>{
+      card.scrollTop=it.offsetTop-card.offsetTop-20;
+      it.classList.add('flash'); setTimeout(()=>it.classList.remove('flash'), 700);
+    });
+  }
+}
+function closeErrors(){ errorsModal.classList.remove('show'); }
+document.getElementById('openErrors').onclick=()=>openErrors();
+document.getElementById('errClose').onclick=closeErrors;
+errorsModal.addEventListener('pointerdown', e=>{ if(e.target===errorsModal) closeErrors(); });
 
 // ============================================================
 //  Toast
