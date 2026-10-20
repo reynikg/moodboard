@@ -63,6 +63,7 @@ Press `?` in the app for the full list.
 | Show / hide layers | `⌥1` |
 | Undo / Redo | `⌘Z` / `⇧⌘Z` |
 | Duplicate / Select all / Delete | `⌘D` / `⌘A` / `⌫` |
+| Group / Ungroup | `G` / `⇧G` |
 | Nudge (×10 with `Shift`) | Arrow keys |
 | Pan | `Space` + drag, or scroll |
 | Zoom | `⌘` + scroll, `+` / `−` |

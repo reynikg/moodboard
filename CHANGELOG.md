@@ -7,6 +7,14 @@ and this project uses date-based, incremental versioning. Dates are in YYYY-MM-D
 
 ---
 
+## [1.5.0] — 2026-10-21
+
+### Added
+- **Add a palette to the board.** The **+** next to *Color palette* in the image inspector lays the image's five colours out as swatches along its longer side — below a landscape or square image, to the right of a portrait one — spanning that whole side, with equal gaps. Each swatch shows its hex code in white or black, whichever reads better; when the code doesn't fit across a swatch it's turned to run upwards. The swatches and labels are added as one group.
+- **Groups.** Select two or more items and choose **Group** in the inspector (under *Auto-arrange these*) or press `G`. Clicking any member selects the whole group; double-click to pick one member on its own. **Ungroup** (`⇧G`) takes them apart. Grouped layers are indented in the Layers list.
+
+---
+
 ## [1.4.0] — 2026-10-03
 
 ### Fixed

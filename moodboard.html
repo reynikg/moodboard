@@ -218,6 +218,9 @@
   .layer-row:hover{background:var(--hover);}
   .layer-row.sel{background:var(--accent-soft);}
   .layer-row.dragging{opacity:.45;}
+  /* members of a group sit indented behind a thin rail */
+  .layer-row.grouped{margin-left:12px;position:relative;}
+  .layer-row.grouped::before{content:"";position:absolute;left:-6px;top:3px;bottom:3px;width:1.5px;border-radius:1px;background:var(--border-strong);}
   .layer-row .ic{width:17px;height:17px;flex:none;color:var(--ink-soft);display:grid;place-items:center;}
   .layer-row.sel .ic{color:var(--accent);}
   .layer-row .nm{flex:1;font-size:12.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
@@ -255,6 +258,17 @@
   .pal-sw:hover{transform:scale(1.09);}
   .pal-sw:active{transform:scale(.96);}
   .pal-msg{font-size:11.5px;color:var(--ink-faint);line-height:1.4;}
+  /* a field label with a small action right after it */
+  .lbl-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+  .field .lbl-row label{margin:0;}
+  .mini-btn{
+    width:20px;height:20px;border:none;border-radius:6px;cursor:pointer;padding:0;
+    display:grid;place-items:center;background:var(--seg-bg);color:var(--ink-soft);
+    transition:background .15s, color .15s, transform .1s, opacity .15s;
+  }
+  .mini-btn:hover{background:var(--accent-soft);color:var(--accent);}
+  .mini-btn:active{transform:scale(.9);transition-duration:.08s;}
+  .mini-btn:disabled{opacity:.35;cursor:default;background:var(--seg-bg);color:var(--ink-soft);}
   .ctrl{
     flex:1;height:34px;border:1px solid var(--border);background:var(--field-bg);
     border-radius:9px;padding:0 10px;font-family:var(--font);font-size:13px;color:var(--ink);
@@ -670,6 +684,9 @@
         <div class="sc-item"><span class="desc">Redo</span><span class="keys"><span class="key">⇧</span><span class="key">⌘</span><span class="key">Z</span></span></div>
         <div class="sc-item"><span class="desc">Duplicate</span><span class="keys"><span class="key">⌘</span><span class="key">D</span></span></div>
         <div class="sc-item"><span class="desc">Select all</span><span class="keys"><span class="key">⌘</span><span class="key">A</span></span></div>
+        <div class="sc-item"><span class="desc">Group</span><span class="keys"><span class="key">G</span></span></div>
+        <div class="sc-item"><span class="desc">Ungroup</span><span class="keys"><span class="key">⇧</span><span class="key">G</span></span></div>
+        <div class="sc-item"><span class="desc">Select inside a group</span><span class="keys"><span class="key">double-click</span></span></div>
         <div class="sc-item"><span class="desc">Delete</span><span class="keys"><span class="key">⌫</span></span></div>
         <div class="sc-item"><span class="desc">Nudge</span><span class="keys"><span class="key">↑</span><span class="key">↓</span><span class="key">←</span><span class="key">→</span></span></div>
         <div class="sc-item"><span class="desc">Nudge ×10</span><span class="keys"><span class="key">⇧</span><span class="key">↑</span></span></div>
@@ -1584,10 +1601,13 @@ cv.addEventListener('pointerdown', e=>{
   }
   const hitO = topObjectAt(w.x, w.y);
   if(hitO){
+    // clicking any member of a group takes the whole group; a member picked on its own
+    // (double-click or Layers) stays on its own while you keep working on it
+    const ids=groupMembers(hitO).map(o=>o.id);
     if(e.shiftKey){
-      if(selection.has(hitO.id)) selection.delete(hitO.id); else selection.add(hitO.id);
+      if(selection.has(hitO.id)) ids.forEach(id=>selection.delete(id)); else ids.forEach(id=>selection.add(id));
     } else if(!selection.has(hitO.id)){
-      selection.clear(); selection.add(hitO.id);
+      selection=new Set(ids);
     }
     renderInspector();
     beginMove(w);
@@ -1683,6 +1703,7 @@ window.addEventListener('pointermove', e=>{
       const c=objCenter(o);
       if(c.x>=mb.x && c.x<=mb.x+mb.w && c.y>=mb.y && c.y<=mb.y+mb.h) selection.add(o.id);
     }
+    selection=expandToGroups(selection);
     render(); return;
   }
   if(mode==='move'){
@@ -1785,6 +1806,7 @@ cv.addEventListener('dblclick', e=>{
   const s=evtPt(e), w=screenToWorld(s.x,s.y);
   const o=topObjectAt(w.x,w.y);
   if(o && o.type==='text'){ selectOnly(o.id); startTextEdit(o); }
+  else if(o && o.groupId){ selectOnly(o.id); render(); }   // step inside the group
 });
 
 // ============================================================
@@ -1866,13 +1888,56 @@ function deleteSelection(){
 function duplicateSelection(){
   if(!selection.size) return;
   pushHistory();
-  const copies=[];
+  const copies=[], newGroup=new Map();   // copies form their own group, not join the original
   for(const o of selectedObjs()){
     const c=JSON.parse(JSON.stringify(o)); c.id=uid(); c.x+=24; c.y+=24; scene.push(c); copies.push(c.id);
+    if(c.groupId){ if(!newGroup.has(c.groupId)) newGroup.set(c.groupId, 'g'+uid()); c.groupId=newGroup.get(c.groupId); }
     if(c.type==='image') ensureImage(c.src);
   }
   selection=new Set(copies); render(); renderInspector(); renderLayers();
 }
+
+// ---- groups --------------------------------------------------
+// A group is the set of objects sharing a `groupId`; the scene stays flat.
+function groupMembers(o){ return o.groupId ? scene.filter(x=>x.groupId===o.groupId) : [o]; }
+function expandToGroups(ids){
+  const gids=new Set(scene.filter(o=>ids.has(o.id) && o.groupId).map(o=>o.groupId));
+  if(!gids.size) return ids;
+  const out=new Set(ids);
+  for(const o of scene) if(gids.has(o.groupId)) out.add(o.id);
+  return out;
+}
+// the groupId when the selection is exactly one whole group, else null
+function selectedGroupId(){
+  const sel=selectedObjs();
+  if(sel.length<2) return null;
+  const g=sel[0].groupId;
+  if(!g || sel.some(o=>o.groupId!==g)) return null;
+  return groupMembers(sel[0]).length===sel.length ? g : null;
+}
+function groupSelection(){
+  const sel=selectedObjs();
+  if(sel.length<2){ toast('Select two or more items to group'); return; }
+  if(selectedGroupId()) return;
+  pushHistory();
+  const gid='g'+uid();
+  // gather the members into one run of layers, at the front-most member's place
+  const top=Math.max(...sel.map(o=>scene.indexOf(o)));
+  const at=scene.slice(0,top).filter(o=>!selection.has(o.id)).length;
+  const rest=scene.filter(o=>!selection.has(o.id));
+  sel.forEach(o=>{ o.groupId=gid; });
+  rest.splice(at,0,...sel);
+  scene=rest;
+  render(); renderInspector(); renderLayers(); toast('Grouped '+plural(sel.length,'item'));
+}
+function ungroupSelection(){
+  const sel=selectedObjs().filter(o=>o.groupId);
+  if(!sel.length) return;
+  pushHistory();
+  sel.forEach(o=>{ delete o.groupId; });
+  render(); renderInspector(); renderLayers(); toast('Ungrouped');
+}
+
 function bringForward(d){
   if(selection.size!==1) return;
   pushHistory();
@@ -1892,10 +1957,14 @@ function renderInspector(){
   if(!sel.length){ inspector.classList.remove('show'); return; }
   inspector.classList.add('show');
   if(sel.length>1){
-    inspector.innerHTML=`<div class="insp-title">${sel.length} items selected</div>
-      <div class="field"><button class="primary" id="ipLayout" style="background:var(--seg-bg);color:var(--ink)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="5" rx="1.4"/><rect x="13" y="3" width="8" height="5" rx="1.4"/><rect x="3" y="11" width="5" height="5" rx="1.4"/><rect x="10" y="11" width="11" height="5" rx="1.4"/></svg>Auto-arrange these</button></div>
+    const isGroup=!!selectedGroupId();
+    const plain='style="background:var(--seg-bg);color:var(--ink)"';
+    inspector.innerHTML=`<div class="insp-title">${isGroup?'Group · ':''}${sel.length} items${isGroup?'':' selected'}</div>
+      <div class="field"><button class="primary" id="ipLayout" ${plain}><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="5" rx="1.4"/><rect x="13" y="3" width="8" height="5" rx="1.4"/><rect x="3" y="11" width="5" height="5" rx="1.4"/><rect x="10" y="11" width="11" height="5" rx="1.4"/></svg>Auto-arrange these</button></div>
+      <div class="field"><button class="primary" id="ipGroup" ${plain} title="${isGroup?'Ungroup  (⇧G)':'Group  (G)'}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3" stroke-dasharray="${isGroup?'3 3':'0'}"/><rect x="7" y="7" width="6" height="6" rx="1.2"/><rect x="11" y="11" width="6" height="6" rx="1.2"/></svg>${isGroup?'Ungroup':'Group'}</button></div>
       <div class="field"><button class="danger" id="ipDel"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>Delete ${sel.length} items</button></div>`;
     document.getElementById('ipLayout').onclick=autoLayout;
+    document.getElementById('ipGroup').onclick=isGroup?ungroupSelection:groupSelection;
     document.getElementById('ipDel').onclick=deleteSelection;
     return;
   }
@@ -1941,7 +2010,8 @@ function renderInspector(){
       <div class="field"><label>Border color</label><div class="row">
         <span class="swatch"><input type="color" id="fStroke" value="${o.stroke||'#ffffff'}"></span>
         <input class="ctrl" id="fStrokeHex" value="${o.stroke||'#ffffff'}"></div></div>
-      <div class="field"><label>Color palette</label>
+      <div class="field"><div class="lbl-row"><label>Color palette</label>
+        <button class="mini-btn" id="palAdd" disabled title="Add palette to the board" aria-label="Add palette to the board"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
         <div class="palette" id="imgPalette"><div class="pal-msg">Reading colors…</div></div></div>`;
   } else {
     html+=`<div class="field"><label>Fill</label><div class="row">
@@ -2034,6 +2104,8 @@ function showPalette(o){
       return;
     }
     if(!cols.length){ host.innerHTML='<div class="pal-msg">No colors found.</div>'; return; }
+    const add=document.getElementById('palAdd');
+    if(add){ add.disabled=false; add.onclick=()=>addPaletteToBoard(o, cols); }
     host.innerHTML='';
     cols.forEach(hex=>{
       const sw=document.createElement('button');
@@ -2045,6 +2117,63 @@ function showPalette(o){
   };
   if(rec.loaded) run();
   else { const prev=rec.img.onload; rec.img.onload=function(){ if(prev) prev.apply(this,arguments); run(); }; }
+}
+// Lay the palette out as a row of swatches along the image's longer side (below it
+// when landscape or square, to the right when portrait), spanning that whole side.
+// Each swatch carries its hex code; the swatches and labels form one group.
+function addPaletteToBoard(img, cols){
+  const across = img.w>=img.h;                 // swatches run left→right under the image
+  const long = across ? img.w : img.h, short = across ? img.h : img.w;
+  const n = cols.length;
+  const gap = Math.max(2, long*0.016);
+  const thick = Math.min(long*0.45, short*0.52);
+  const cell = (long - gap*(n-1))/n;
+  const ic = objCenter(img), r = img.rotation||0;
+  const gid = 'g'+uid();
+  const made = [];
+  // place an object by its centre in the image's own (unrotated) frame
+  const put = (o, lx, ly, rot)=>{
+    const p = rotatePt(lx, ly, r);
+    o.x = ic.x+p.x - o.w/2; o.y = ic.y+p.y - o.h/2;
+    o.rotation = r + rot; o.groupId = gid;
+    made.push(o);
+  };
+  cols.forEach((hex, i)=>{
+    const cw = across ? cell : thick, ch = across ? thick : cell;
+    const x0 = across ? -img.w/2 + i*(cell+gap) : img.w/2 + gap;
+    const y0 = across ? img.h/2 + gap : -img.h/2 + i*(cell+gap);
+    const cx = x0+cw/2, cy = y0+ch/2;
+
+    const sw = newShape('rect', 0, 0, cw, ch);
+    sw.fill = hex; sw.radius = Math.min(img.radius||0, Math.min(cw,ch)/2); sw.name = hex;
+    put(sw, cx, cy, 0);
+
+    // label: horizontal when it fits across the swatch, otherwise turned to read upwards
+    const t = newText(0, 0);
+    t.text = hex; t.fontWeight = 500; t.color = textColorOn(hex); t.name = hex+' label';
+    t.fontSize = Math.max(6, long*0.032); measureText(t);
+    let upright = t.w <= cw*0.84 && t.h <= ch*0.5;
+    if(!upright){
+      const fit = Math.min(1, (ch*0.84)/t.w, (cw*0.6)/t.h);
+      if(fit<1){ t.fontSize = Math.max(4, t.fontSize*fit); measureText(t); }
+    }
+    const along = upright ? t.h : t.w;          // the label's extent up the swatch
+    const pad = Math.max(t.fontSize*0.6, Math.min(cw,ch)*0.1);
+    const ty = Math.max(y0 + along/2, y0 + ch - pad - along/2);
+    put(t, cx, ty, upright ? 0 : -Math.PI/2);
+  });
+  pushHistory();
+  scene.push(...made);
+  selection = new Set(made.map(o=>o.id));
+  render(); renderInspector(); renderLayers();
+  toast('Palette added');
+}
+// black or white — whichever reads better on `hex` (WCAG contrast)
+function textColorOn(hex){
+  const v = parseInt(hex.slice(1,7),16);
+  const lin = c=>{ c/=255; return c<=0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4); };
+  const L = 0.2126*lin(v>>16&255) + 0.7152*lin(v>>8&255) + 0.0722*lin(v&255);
+  return (L+0.05)/0.05 >= 1.05/(L+0.05) ? '#000000' : '#ffffff';
 }
 function copyHex(hex){
   if(navigator.clipboard?.writeText){
@@ -2151,7 +2280,7 @@ function layerIcon(o){
 // Everything the list shows: order, type and label of each object.
 function layersKey(){
   let k='';
-  for(const o of scene) k+=o.id+'\u0001'+o.type+'\u0001'+displayName(o)+'\u0002';
+  for(const o of scene) k+=o.id+'\u0001'+o.type+'\u0001'+displayName(o)+'\u0001'+(o.groupId||'')+'\u0002';
   return k;
 }
 function renderLayers(){
@@ -2164,7 +2293,7 @@ function renderLayers(){
   for(let i=scene.length-1;i>=0;i--){
     const o=scene[i];
     const row=document.createElement('div');
-    row.className='layer-row'+(selection.has(o.id)?' sel':'');
+    row.className='layer-row'+(selection.has(o.id)?' sel':'')+(o.groupId?' grouped':'');
     row.dataset.id=o.id;
     row.setAttribute('role','option');
     row.innerHTML=`<span class="ic">${layerIcon(o)}</span><span class="nm" title="${escapeHtml(displayName(o))} · double-click to rename">${escapeHtml(displayName(o))}</span>`+
@@ -2812,6 +2941,7 @@ window.addEventListener('keydown', e=>{
     case 'a': setTool('connector'); syncFlyout(); break;
     case 'i': setTool('image'); document.getElementById('fileImg').click(); break;
     case 'l': autoLayout(); break;
+    case 'g': e.shiftKey ? ungroupSelection() : groupSelection(); break;
     case 'backspace': case 'delete': e.preventDefault(); deleteSelection(); break;
     case 'escape': selection.clear(); renderInspector(); render(); break;
     case '1': if(e.shiftKey) fitView(); break;
